@@ -1,61 +1,58 @@
-# Laboratório de Manutenção de Software – Sistema Legado de Biblioteca
+# Atividade 1 – Manutenção Preventiva
 
-Este repositório simula um sistema Java legado que evoluiu ao longo do tempo com múltiplas mudanças incrementais, correções rápidas e decisões arquiteturais de curto prazo. O resultado é um código funcional, porém com alta complexidade de manutenção, ideal para práticas reais de manutenção de software.
+## Identificação de Problemas e Classificação
 
-## Contexto do Sistema
+1. **God Class (Classe com muitas responsabilidades)**  
+   A classe `LibrarySystem` concentra muitas responsabilidades, como exibição de menu, leitura de dados, controle do fluxo e tratamento de erros, dificultando manutenção e evolução.
 
-Com base na implementação atual, o sistema oferece:
+2. **Mixed Responsibilities (Múltiplas responsabilidades)**  
+   O método `startCli()` mistura interface com o usuário, lógica do sistema e tratamento de exceções, tornando o código menos organizado.
 
-- cadastro de livros ([BookManager.registerBook](src/BookManager.java#L10))
-- cadastro de usuários ([UserManager.registerUser](src/UserManager.java#L5))
-- empréstimo de livros ([LoanManager.borrowBook](src/LoanManager.java#L14))
-- devolução de livros ([LoanManager.returnBook](src/LoanManager.java#L90))
-- geração de relatórios ([ReportGenerator.generateSimpleReport](src/ReportGenerator.java#L9))
-- operação via menu de linha de comando ([LibrarySystem.startCli](src/LibrarySystem.java#L23))
+3. **Long Method (Método muito longo)**  
+   O método `LoanManager.borrowBook()` é muito extenso e realiza várias tarefas em um único bloco, prejudicando a legibilidade.
 
-O projeto contém intencionalmente problemas de manutenibilidade e bugs sutis para apoiar atividades práticas de manutenção preventiva, corretiva e evolutiva.
+4. **Deep Nesting (Excesso de aninhamento)**  
+   O método `borrowBook()` possui muitos `if` aninhados, o que dificulta a leitura e manutenção do código.
 
-## Organização das Atividades
+5. **Long Parameter List (Lista longa de parâmetros)**  
+   O método `borrowBook()` recebe muitos parâmetros primitivos, aumentando a complexidade e o risco de erro.
 
-As atividades foram separadas em documentos próprios para deixar objetivos, escopo e formato de entrega mais claros:
+6. **Validation Smell (Problema de validação)**  
+   O método `BookManager.registerBook()` permite cadastrar livros com título vazio, o que não deveria ocorrer em um sistema correto.
 
-1. [ATIVIDADE_1.md](ATIVIDADE_1.md) - Análise de Código e Manutenção Preventiva
-2. [ATIVIDADE_2.md](ATIVIDADE_2.md) - Manutenção Corretiva e Evolutiva
+7. **Edge Case / Missing Validation (Caso limite não tratado)**  
+   No método `listBooksSimple()`, quando não há livros cadastrados, o sistema tenta acessar um item inexistente da lista, podendo gerar erro.
 
-Data final de entrega: 16/04.
+8. **Incorrect Logic / Bug (Erro de lógica)**  
+   No método `generateSimpleReport()`, o total de empréstimos e a contagem de empréstimos fechados estavam sendo calculados de forma incorreta.
 
-## Como Executar o Projeto
+9. **Hidden Dependencies (Dependências ocultas)**  
+   O uso de dados estáticos no `LegacyDatabase` faz com que o sistema dependa diretamente dele, dificultando testes e manutenção.
 
-Compilar:
+10. **Encapsulation Violation (Violação de encapsulamento)**  
+    Os métodos do `LegacyDatabase` expõem diretamente estruturas internas mutáveis, permitindo alterações sem controle.
 
-```bash
-javac src/*.java
-```
+## Refatorações Realizadas
 
-Executar modo interativo:
+- **Severo Junior**  
+  - Criou o método `canUserBorrow` em `LoanManager.borrowBook()` para resolver parcialmente os problemas 3 (Long Method) e 4 (Deep Nesting).  
+  - Corrigiu o comportamento de empréstimo não encontrado em `LoanManager.returnBook()`, garantindo que o sistema lance exceção ao invés de retornar em silêncio.
 
-```bash
-java -cp src Main
-```
+- **Luiz Bolzani**  
+  - Adicionou validação no método `BookManager.listBooksSimple()` para tratar corretamente o caso em que não há livros cadastrados.
 
-Executar listagem rápida:
+- **Jefferson**  
+  - Corrigiu a lógica do método `LegacyDatabase.countOpenLoansByBook()`, garantindo a contagem correta de empréstimos abertos por livro.
 
-```bash
-java -cp src Main --list
-```
+- **Zoltan**  
+  - Ajustou o método `ReportGenerator.generateSimpleReport()`, corrigindo o total de empréstimos e a contagem de empréstimos fechados.
 
-Executar relatório rápido:
+- **Bruno Laroca**  
+  - Criou o método `LoanManager.listLoansByUser()`, organizando a funcionalidade de consulta de empréstimos por usuário em uma operação própria.
 
-```bash
-java -cp src Main --report
-```
-
-## Visão Geral de Problemas de Manutenibilidade
-
-Problemas detalhados e guias de exploração foram movidos para os arquivos de atividade.
+---
 
 ## Observação Final
 
-O objetivo não é reescrever o sistema inteiro do zero.
-
-Os estudantes devem melhorar o sistema incrementalmente, simulando manutenção de software no mundo real com pequenas mudanças seguras, validação contínua e evolução controlada.
+O objetivo não foi reescrever o sistema inteiro do zero.  
+As melhorias foram aplicadas de forma incremental, com pequenas mudanças seguras, buscando simular manutenção de software no mundo real.

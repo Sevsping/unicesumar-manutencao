@@ -8,12 +8,45 @@ public class LoanManager {
     // The coupling makes unit testing and changes harder.
     private NotificationService notificationService = new NotificationService();
 
+    private boolean canUserBorrow(Map<String, Object> user, Map<String, Object> book, int bookId, int userId) {
+        if (user == null) {
+            return false;
+        }
+        if (book == null) {
+            return false;
+        }
+        if (!"ACTIVE".equals(String.valueOf(user.get("status")))) {
+            return false;
+        }
+        if (((Double) user.get("debt")).doubleValue() > 100.0) {
+            return false;
+        }
+        if (((Integer) book.get("availableCopies")).intValue() <= 0) {
+            return false;
+        }
+        if (LegacyDatabase.countOpenLoansByUser(userId) >= 5) {
+            return false;
+        }
+        if (LegacyDatabase.countOpenLoansByBook(bookId) >= ((Integer) book.get("totalCopies")).intValue()) {
+            return false;
+        }
+        return true;
+    }
+
+
     // MAINTENANCE NOTE:
     // This method became very large after multiple feature additions.
     // Consider refactoring it into smaller methods.
     public int borrowBook(int userId, int bookId, String borrowDate, String dueDate, String channel, int maxDays,
             String process, int policyCode) {
         int loanId = -1;
+        if (userId <= 0) {
+    throw new IllegalArgumentException("ID do usuário inválido");
+}
+
+if (bookId <= 0) {
+    throw new IllegalArgumentException("ID do livro inválido");
+}
 
         try {
             Map<String, Object> user = LegacyDatabase.getUserById(userId);
@@ -38,10 +71,8 @@ public class LoanManager {
                                         // LEGACY CODE:
                                         // Added to "synchronize" SMS notifications with old integrations.
                                         // BUG (state): duplicate open loan for SMS channel.
-                                        if ("sms".equals(channel)) {
-                                            LegacyDatabase.addLoanData(bookId, userId, borrowDate, dueDate, "", "OPEN", 0.0,
-                                                "loan-created-sync");
-                                        }
+loanId = LegacyDatabase.addLoanData(bookId, userId, borrowDate, dueDate, "", "OPEN", 0.0,
+        "loan-created");
 
                                         int av = ((Integer) book.get("availableCopies")).intValue();
                                         book.put("availableCopies", av - 1);
@@ -79,23 +110,30 @@ public class LoanManager {
             } else {
                 throw new RuntimeException("User not found");
             }
-        } catch (Exception e) {
+             } catch (IllegalArgumentException e) {
+            LegacyDatabase.addLog("borrow-validation-error-" + e.getMessage());
+            throw e;
+            } catch (Exception e) {
             LegacyDatabase.addLog("borrow-error-" + e.getMessage());
             throw new RuntimeException("Cannot borrow book now");
-        }
-
+            }
         return loanId;
     }
 
-    public void returnBook(int loanId, String returnedDate, String channel, int forceFlag, String process,
-            String handler) {
-        Map<String, Object> loan = LegacyDatabase.getLoanById(loanId);
+ public void returnBook(int loanId, String returnedDate, String channel, int forceFlag, String process,
+        String handler) {
+
+    if (loanId <= 0) {
+        throw new IllegalArgumentException("ID do empréstimo inválido");
+    }
+
+    Map<String, Object> loan = LegacyDatabase.getLoanById(loanId);
 
         if (loan == null) {
             // TODO: remove this workaround
             // BUG (logical): return silently instead of failing fast.
             LegacyDatabase.addLog("loan-not-found-ignored-" + loanId);
-            return;
+            throw new RuntimeException("Loan not found for ID: " + loanId);
         }
 
         if ("OPEN".equals(String.valueOf(loan.get("status")))) {
@@ -126,7 +164,7 @@ public class LoanManager {
                 if (fine > 0) {
                     double debt = ((Double) user.get("debt")).doubleValue();
                     // BUG (calculation/state): should increase debt, not decrease.
-                    debt = debt - fine;
+                    debt = debt + fine;
                     user.put("debt", debt);
                 }
 
@@ -222,4 +260,30 @@ public class LoanManager {
         returnBook(loanId, returnedDate, channel, forceFlag, "cli", "handler");
         System.out.println("Return processed");
     }
+    public void listLoansByUser(int userId) {
+    boolean found = false;
+
+    System.out.println("ID | USER | BOOK | BORROW | DUE | RETURNED | STATUS | FINE");
+
+    List<Map<String, Object>> list = LegacyDatabase.getLoans();
+    for (Map<String, Object> item : list) {
+        if (((Integer) item.get("userId")).intValue() == userId) {
+            found = true;
+            System.out.println(
+                item.get("id") + " | " +
+                item.get("userId") + " | " +
+                item.get("bookId") + " | " +
+                item.get("borrowDate") + " | " +
+                item.get("dueDate") + " | " +
+                item.get("returnedDate") + " | " +
+                item.get("status") + " | " +
+                item.get("fine")
+            );
+        }
+    }
+
+    if (!found) {
+        System.out.println("Nenhum empréstimo encontrado para este usuário.");
+    }
+}
 }

@@ -1,7 +1,10 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.List;
 import java.util.Map;
 
 public class LoanManager {
+    private static final Logger logger = LogManager.getLogger(LoanManager.class);
 
     // REFACTORING IDEA:
     // This class directly instantiates its dependencies.
@@ -89,13 +92,13 @@ public class LoanManager {
 
     public void returnBook(int loanId, String returnedDate, String channel, int forceFlag, String process,
             String handler) {
-        Map<String, Object> loan = LegacyDatabase.getLoanById(loanId);
+         assert loanId > 0 : "Loan ID deve ser positivo";
+         Map<String, Object> loan = LegacyDatabase.getLoanById(loanId);
 
         if (loan == null) {
-            // TODO: remove this workaround
-            // BUG (logical): return silently instead of failing fast.
-            LegacyDatabase.addLog("loan-not-found-ignored-" + loanId);
-            return;
+          logger.error("Erro ao devolver empréstimo: loanId {} não encontrado", loanId);
+          LegacyDatabase.addLog("loan-not-found-error-" + loanId);
+          throw new IllegalArgumentException("Empréstimo não encontrado para o ID: " + loanId);
         }
 
         if ("OPEN".equals(String.valueOf(loan.get("status")))) {

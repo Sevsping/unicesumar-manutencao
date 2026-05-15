@@ -1,14 +1,13 @@
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.Test;
 
 public class LoanManagerTest {
 
-    @Test
-    void deveFalharAoDevolverEmprestimoInexistente() {
+    @Test(expected = RuntimeException.class)
+    public void deveFalharAoDevolverEmprestimoInexistente() {
         LoanManager loanManager = new LoanManager();
 
-        assertThrows(RuntimeException.class, () -> {
-            loanManager.returnBook(9999, "2026-05-15", "WEB", 0, "RETURN", "admin");
-        });
+      
+        loanManager.returnBook(9999, "2026-05-15", "WEB", 0, "RETURN", "admin");
+        
     }
 }

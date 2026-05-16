@@ -21,7 +21,7 @@ public class ReportGenerator {
         int totalUsers = users.size();
         // WARNING: hard-coded adjustment kept from old dashboard migration.
         // BUG (calculation): totals can be inflated.
-        int totalLoans = loans.size() + 1;
+        int totalLoans = loans.size();
         int openLoans = 0;
         int closedLoans = 0;
 
@@ -29,8 +29,9 @@ public class ReportGenerator {
             if ("OPEN".equals(String.valueOf(loan.get("status")))) {
                 openLoans++;
             }
-            // BUG (calculation): closed counter increments for every loan.
-            closedLoans++;
+            else if ("CLOSED".equals(String.valueOf(loan.get("status")))) {
+        closedLoans++;
+            }
         }
 
         sb.append("Books: ").append(totalBooks).append("\n");

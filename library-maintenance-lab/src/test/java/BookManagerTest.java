@@ -9,3 +9,12 @@ public class BookManagerTest {
         manager.listBooksSimple();
     }
 }
+
+@Test
+public void deveListarLivrosComSucesso() {
+    BookManager manager = new BookManager();
+
+    manager.registerBook("Livro Teste", "Autor Teste", 2024, "GERAL", 1, 1, "A1", "ISBN-001");
+
+    manager.listBooksSimple();
+}

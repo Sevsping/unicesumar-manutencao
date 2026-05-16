@@ -4,7 +4,6 @@ public class BookManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void deveFalharQuandoNaoExistemLivros() {
-        BookManager manager = new BookManager();
         LegacyDatabase.getBooks().clear();
 
         BookManager manager = new BookManager();

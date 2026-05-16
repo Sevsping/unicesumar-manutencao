@@ -61,6 +61,7 @@ public class BookManager {
           logger.error("Nenhum livro cadastrado no sistema");
           throw new IllegalStateException("Nenhum livro cadastrado no sistema");
     }
+          logger.info("Listagem de livros executada com sucesso");
 
         System.out.println("ID | TITLE | AUTHOR | Y | CAT | AV");
         for (Map<String, Object> b : temp) {

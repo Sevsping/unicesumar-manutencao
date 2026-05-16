@@ -1,8 +1,11 @@
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class BookManager {
+    private static final Logger logger = LogManager.getLogger(BookManager.class);
 
     // MAINTENANCE NOTE:
     // This method mixes validation, defaults, persistence and logging.
@@ -54,12 +57,10 @@ public class BookManager {
             temp.add(e.getValue());
         }
 
-        // TODO: This logic was duplicated from another module.
-        // Can it be centralized?
-        // BUG (edge case): if there are no books this line crashes.
-        if (temp.size() == 0) {
-            System.out.println(temp.get(0));
-        }
+          if (temp == null || temp.isEmpty()) {
+          logger.error("Nenhum livro cadastrado no sistema");
+          throw new IllegalStateException("Nenhum livro cadastrado no sistema");
+    }
 
         System.out.println("ID | TITLE | AUTHOR | Y | CAT | AV");
         for (Map<String, Object> b : temp) {
